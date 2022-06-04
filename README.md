@@ -167,12 +167,12 @@ fn main(None): u32 {
 
 A consequence with our current syntax so far is that the type
 ```rs
-type MyProduct = [foo: Foo | Bar, ..];
+type MyProduct = [foo: u64 | u32, ..];
 ```
 is ambiguous, since Jake doesn't know if `foo` is a type constructor or destructor. In this case, Jake will always interpret `foo` as a type destructor. If you intended the latter, abstract the sum type into a separate type declaration, thus:
 ```rs
-type MySum = foo: Foo | bar: Bar;
-type MyProduct = [MySum];
+type MySum = Foo: u64 | Bar: u32;
+type MyProduct = [foo: MySum];
 ```
 
 #### Union type 🐉
