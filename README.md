@@ -1,4 +1,8 @@
-# Jake
+<p align="center">
+    <img height="230" src="jake.png">
+    <img align="right" height="335" src="logo.png">
+</p>
+
 Welcome to the documentation for the Jake programming language.
 
 ## Introduction
