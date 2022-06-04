@@ -21,7 +21,7 @@ Jake has 5 categories of types.
 The void type is used to signify either an absence of a value, in the case where it's used in a return value, thus:
 
 ```rs
-fn main() -> void {
+fn main(): void {
     // returns nothing, function may have side effects
 }
 ```
@@ -90,13 +90,13 @@ The infix types hold their roots in type theory and category theory.
 Exponential types are equivalent to the notion of function types in other languages. Jake follows the notion of currying to describe functions with multiple parameters.
 
 ```rs
-fn foo() -> u32;
+fn foo(): u32;
 // foo has type `void -> u32`
 
-fn bar(x: u32) -> void;
+fn bar(x: u32): void;
 // bar has type `u32 -> void`
 
-fn baz(x: u32, y: i32) -> i64;
+fn baz(x: u32, y: i32): i64;
 // baz has type u32 -> i32 -> i64
 ```
 
@@ -120,7 +120,7 @@ type Product = [
     y: u32
 ];
 
-fn main() -> u32 {
+fn main(): u32 {
     let foo: Product = [1, 5];
     return foo.x;
 }
@@ -133,11 +133,11 @@ Sum types are the equivalent of algebraic enums in Rust, or the disjoint union i
 ```rs
 type Sum = Foo | Bar; // Foo and Bar are type destructors
 
-fn main(Foo) -> *[u8] {
+fn main(Foo): *[u8] {
     return "you passed foo";
 }
 
-fn main(Bar) -> *[u8] {
+fn main(Bar): *[u8] {
     return "you passed bar";
 }
 ```
@@ -147,11 +147,11 @@ Sum types may also contain values.
 ```rs
 type Option = Some: u32 | None;
 
-fn main(x: Some) -> u32 {
+fn main(x: Some): u32 {
     return x;
 }
 
-fn main(None) -> u32 {
+fn main(None): u32 {
     return 0;
 }
 ```
@@ -163,6 +163,18 @@ fn main(None) -> u32 {
 > Sum types without values are always defined internally as `usize`
 > If they have values, then it's `[usize, *mut T]`.
 
+#### Syntax ambiguity
+
+A consequence with our current syntax so far is that the type
+```rs
+type MyProduct = [foo: Foo | Bar, ..];
+```
+is ambiguous, since Jake doesn't know if `foo` is a type constructor or destructor. In this case, Jake will always interpret `foo` as a type destructor. If you intended the latter, abstract the sum type into a separate type declaration, thus:
+```rs
+type MySum = foo: Foo | bar: Bar;
+type MyProduct = [MySum];
+```
+
 #### Union type 🐉
 
 Union types are unsafe, in that a single memory area is designated several types at once.
@@ -170,7 +182,7 @@ Union types are unsafe, in that a single memory area is designated several types
 ```rs
 type Unsafe = union [float: f64, int: i64];
 
-fn main(n: i64) -> f64 {
+fn main(n: i64): f64 {
     let beware = union [ int: n ];
     return beware.float; // will reinterpret `n` from i64 to f64
 }
@@ -181,11 +193,11 @@ fn main(n: i64) -> f64 {
 Methods are simply functions. Furthermore, all functions (and consequently methods) are public to discourage code duplication.
 
 ```rs
-fn double(x: u32) -> u32 {
+fn double(x: u32): u32 {
     return x * 2;
 }
 
-fn main() -> u32 {
+fn main(): u32 {
     return 5.double();
 }
 ```
@@ -201,7 +213,7 @@ Much like WebAssembly, there are only two control flow constructs.
 ```rs
 type Option = Some: u32 | None;
 
-fn main(x: Option) -> u32 {
+fn main(x: Option): u32 {
     if let num: Some = x {
         return num;
     } else {
@@ -213,11 +225,11 @@ is the same as
 ```rs
 type Option = Some: u32 | None;
 
-fn main(num: Some) -> u32 {
+fn main(num: Some): u32 {
     return num;
 }
 
-fn main(num: None) -> u32 {
+fn main(num: None): u32 {
     return 0;
 }
 ```
@@ -227,11 +239,11 @@ fn main(num: None) -> u32 {
 Loop is inverted, unlike other languages. That is, a `continue` keyword must be added to keep the loop going.
 
 ```rs
-fn factorial(n: 0) -> u32 {
+fn factorial(n: 0): u32 {
     return 1;
 }
 
-fn factorial(mut n: u32) -> u32 {
+fn factorial(mut n: u32): u32 {
     let mut num: u32 = 0;
     loop {
         num *= n;
@@ -243,11 +255,11 @@ fn factorial(mut n: u32) -> u32 {
 ```
 
 ```rs
-fn fib(n: 0) -> u32 {
+fn fib(n: 0): u32 {
     return 0;
 }
 
-fn fib(n: u32) -> u32 {
+fn fib(n: u32): u32 {
     let mut a = 0;
     let mut b = 1;
 
@@ -272,16 +284,16 @@ Inline functions are always inlined into their call sites as WebAssembly blocks.
 ```rs
 type Option = Some: u32 | None;
 
-inline fn calculate(n: u32, d: 0) -> u32 {
+inline fn calculate(n: u32, d: 0): u32 {
     return None; // returns in the function above this one
 }
 
-inline fn calculate(n: u32, d: u32) -> u32 {
+inline fn calculate(n: u32, d: u32): u32 {
     break n / d; // returns the result to the caller
 }
 
 // main will return None
-fn main() -> Option {
+fn main(): Option {
     calculate(5, 0);
 }
 ```
@@ -294,7 +306,7 @@ TODO: advanced usage
 Jake despises booleans. What a waste of space! Instead, you should use bit operators with integers.
 
 ```rs
-fn is_pleasant(is_happy: u32, is_cool: u32) -> u32 {
+fn is_pleasant(is_happy: u32, is_cool: u32): u32 {
     return is_happy & is_cool;
 }
 ```
@@ -326,7 +338,7 @@ type Foo = [x: &u32, y: &u32];
 fn main() {
     let x = 0; // 'a
 
-    fn inner() -> &u32 {
+    fn inner(): &u32 {
         let y = 1; // 'b
         let foo: Foo = [&x, &y]; // allowed, internal lifetimes are ['a, 'b]
         return foo.x;
@@ -337,7 +349,7 @@ fn main() {
 ```
 
 ```rs
-fn foo(x: &u32, y: &u32) -> &u32 { // x: 'a, y: 'a, return: 'a
+fn foo(x: &u32, y: &u32): &u32 { // x: 'a, y: 'a, return: 'a
     if random() {
         return x;
     } else {
@@ -345,7 +357,7 @@ fn foo(x: &u32, y: &u32) -> &u32 { // x: 'a, y: 'a, return: 'a
     }
 }
 
-fn bar(x: &u32) -> &u32 {
+fn bar(x: &u32): &u32 {
     let y = 42; // 'b
     let borrow = foo(&x, &y); // the higher lifetime is coerced to the lower one (&x: 'a -> &x: 'b)
     return borrow; // error, cannot return a pointer whose lifetime will end
