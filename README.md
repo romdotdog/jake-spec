@@ -172,7 +172,11 @@ type MyProduct = [foo: u64 | u32, ..];
 is ambiguous, since Jake doesn't know if `foo` is a type constructor or destructor. In this case, Jake will always interpret `foo` as a type destructor. If you intended the latter, abstract the sum type into a separate type declaration, thus:
 ```rs
 type MySum = Foo: u64 | Bar: u32;
-type MyProduct = [foo: MySum];
+type MyProduct = [foo: MySum, ..];
+
+// this is technically possible, but discouraged:
+
+type MyProduct = [sum: Foo: u64 | Bar: u32, ..];
 ```
 
 #### Union type 🐉
@@ -188,9 +192,12 @@ fn main(n: i64): f64 {
 }
 ```
 
+## Functions
+
+All functions (and consequently methods) are public to discourage code duplication.
 ## Methods
 
-Methods are simply functions. Furthermore, all functions (and consequently methods) are public to discourage code duplication.
+Functions may be used as methods.
 
 ```rs
 fn double(x: u32): u32 {
@@ -202,9 +209,29 @@ fn main(): u32 {
 }
 ```
 
+## Getters
+
+Getters are special functions that 
+
+- Have one parameter.
+- Must be referentially transparent (have no side effects). 
+- *Should* be O(1).
+
+Getters do not need parentheses and serve as a generalization of fields.
+
+```rs
+fn double(x: u32): u32 {
+    return x * 2;
+}
+
+fn main(): u32 {
+    return 5.double; 
+}
+```
+
 ## Control flow
 
-Much like WebAssembly, there are only two control flow constructs.
+Much like WebAssembly, there are only three control flow constructs.
 
 ### If
 
@@ -298,9 +325,6 @@ fn main(): Option {
 }
 ```
 
-TODO: advanced usage
-
-
 ## Booleans
 
 Jake despises booleans. What a waste of space! Instead, you should use bit operators with integers.
@@ -323,6 +347,51 @@ fn main() {
 ### `~` vs `!`
 
 Conventionally, `~` is the operator that inverts all the bits in an integer. WebAssembly does not offer this functionality with one instruction, so `~` is implemented as `x ^ -1`. However, `!` is the equivalent of `x == 0`, and is implemented with a single instruction: `eqz`.
+
+## Lambda lifting
+
+Lambda lifting is a technique to convert closures into performant functions. Although Jake doesn't support legitimate closures, he supports lambda lifting.
+
+In short, lambda lifting "lifts" nested functions by converting the environment into parameters.
+
+```rs
+fn main() {
+    let x: u64 = 0;
+    fn add(n: u64) {
+        x += n;
+    }
+
+    add(9);
+    add(10);
+}
+```
+
+Then Jake performs lambda lifting internally.
+
+```rs
+fn add(x: &mut u64, n: u64) {
+    *x += n;
+}
+
+fn main() {
+    let x: u64 = 0;
+
+    add(&mut x, 9);
+    add(&mut x, 10);
+}
+```
+
+### What NOT to do
+
+```rs
+fn instantiate(): void -> void {
+    let x: u64 = 0; // unused variable
+    fn closure() {
+        x += 1;
+    }
+    return closure; // ERROR! closure is of type `&mut u64 -> void`
+}
+```
 
 ## Memory management
 
