@@ -6,7 +6,7 @@
 Welcome to the documentation for the Jake programming language.
 
 ## Introduction
-If one were to think about it, Jake is what you would get if Rust, C, and Haskell had a beautiful baby. Or a bratty one maybe. This baby is highly opinionated, like his second cousin Brisk, though he does operate on a philosophy.
+If one were to think about it, Jake is what you would get if Rust, TypeScript, and Haskell had a beautiful baby. Or a bratty one maybe. This baby is highly opinionated, like his second cousin Brisk, though he does operate on a philosophy.
 
 - *Be performant.* All constructs map very closely to WebAssembly, and abstractions are thin.
 - *Be maintainable.* Jake will complain when you write code only God could possibly understand.
@@ -156,9 +156,6 @@ fn main(None): u32 {
 }
 ```
 
-> **Warning**
-> Sum types are the thickest abstraction of Jake's. Use them sparingly.
-
 > **Note**
 > Sum types without values are always defined internally as `usize`
 > If they have values, then it's `[usize, *mut T]`.
@@ -195,7 +192,8 @@ fn main(n: i64): f64 {
 ## Functions
 
 All functions (and consequently methods) are public to discourage code duplication.
-## Methods
+
+### Methods
 
 Functions may be used as methods.
 
@@ -209,7 +207,7 @@ fn main(): u32 {
 }
 ```
 
-## Getters
+### Getters
 
 Getters are special functions that 
 
@@ -227,6 +225,63 @@ fn double(x: u32): u32 {
 fn main(): u32 {
     return 5.double; 
 }
+```
+
+### Exported functions
+
+Exported functions are exported for use to the host. Only stack types, fat pointers, and regular pointers can be exported.
+
+```rs
+export fn add(x: u32, y: u32): u32 {
+    return x + y;
+}
+```
+
+### Imported functions
+
+Imported functions require the host to provide a function for use with Jake.
+
+```rs
+import fn add(x: u32, y: u32): u32;
+
+fn main(): u32 {
+    return add(1, 1);
+}
+```
+
+### Generics
+
+Generics allow functions to have the same implementation for multiple types.
+
+```rs
+fn call<A, B>(f: A -> B, a: A): B {
+    return f(a);
+}
+
+fn double(x: u32) -> u32 {
+    return x * 2;
+}
+
+fn main() {
+    return call(double, 5); // double(5) = 10
+}
+```
+
+## Imports
+
+Imports are similar to TypeScript.
+
+```ts
+import "./calculus.jk" with { derivative as derive, integrate }; // import these items
+```
+```ts
+import "./graphs.jk" as Graph with { dominators, tarjan }; // import these items into this namespace
+```
+```ts
+import "./algebra.jk" without { svd, rank }; // import everything but these items
+```
+```ts
+import "./categories.jk" as Category; // import everything into this namespace
 ```
 
 ## Control flow
@@ -256,7 +311,7 @@ fn main(num: Some): u32 {
     return num;
 }
 
-fn main(num: None): u32 {
+fn main(None): u32 {
     return 0;
 }
 ```
