@@ -131,7 +131,7 @@ fn main(): u32 {
 Sum types are the equivalent of algebraic enums in Rust, or the disjoint union in general. They are dual to product types, and so are their semantics.
 
 ```rs
-type Sum = Foo | Bar; // Foo and Bar are type destructors
+type Sum = Foo | Bar; // Foo and Bar are type constructors
 
 fn main(Foo): *[u8] {
     return "you passed foo";
