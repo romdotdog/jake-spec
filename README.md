@@ -145,9 +145,9 @@ function main(Bar): *[u8] {
 Sum types may also contain values.
 
 ```ts
-type Option = Some: u32 | None;
+type Option<T> = Some: T | None;
 
-function main(x: Some): u32 {
+function main(x: Some<u32>): u32 {
     return x;
 }
 
@@ -293,9 +293,9 @@ Much like WebAssembly, there are only three control flow constructs.
 `if` functions like any other language, excluding the borrowed `if let` from Rust. Pattern matching and function overloading are encouraged as a primary alternative to `if let`.
 
 ```ts
-type Option = Some: u32 | None;
+type Option<T> = Some: T | None;
 
-function main(x: Option): u32 {
+function main(x: Option<u32>): u32 {
     if let num: Some = x {
         return num;
     } else {
@@ -305,9 +305,7 @@ function main(x: Option): u32 {
 ```
 is the same as
 ```ts
-type Option = Some: u32 | None;
-
-function main(num: Some): u32 {
+function main(num: Option<u32>): u32 {
     return num;
 }
 
@@ -364,8 +362,6 @@ function fib(n: u32): u32 {
 Inline functions are always inlined into their call sites as WebAssembly blocks. Consequently, they allow for easy abstraction and flexibility within your code.
 
 ```ts
-type Option = Some: u32 | None;
-
 inline calculate(n: u32, d: 0): u32 {
     return None; // returns in the function above this one
 }
@@ -375,7 +371,7 @@ inline calculate(n: u32, d: u32): u32 {
 }
 
 // main will return None
-function main(): Option {
+function main(): Option<u32> {
     calculate(5, 0);
 }
 ```
