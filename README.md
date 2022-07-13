@@ -18,20 +18,42 @@ Jake has 5 categories of types.
 
 ### Void type
 
-The void type is used to signify either an absence of a value, in the case where it's used in a return value, thus:
+The [void type](https://en.wikipedia.org/wiki/Void_type) is a type with no size, also called the [unit type](https://en.wikipedia.org/wiki/Unit_type) and equivalent to the [top type](https://en.wikipedia.org/wiki/Top_type). It is equivalent to an empty tuple, and can be constructed with `[]`. When functions don't have a return statement, a `return []` is implicitly inserted.
 
 ```ts
 function main(): void {
-    // returns nothing, function may have side effects
+    // function may have side effects
+    // return [] is implicitly added here, which is compatible with `void`
 }
 ```
 
-or an unspecified type, in the case where it's used in a pointer:
+Variables may have `void` types.
+
+```ts
+function main(): void {
+    let myVar: void = [];
+    return myVar;
+}
+```
+
+In the case where it's used inside a pointer, it is used to show that the pointee has no specified type.
+
 ```ts
 function main(x: *void) {
+    // we can unsafely cast the pointee to an arbitrary type 🐉
     let float = *<*f64>x;
-    // or
-    let *float = <*f64>x;
+}
+```
+
+### Never type
+
+The `never` type is inherited from TypeScript and is equivalent to the [bottom type](https://en.wikipedia.org/wiki/Bottom_type). That is, a value for it can never be constructed. If it is, then the world is ending.
+
+A function can be marked with `never` to signify that it loops forever.
+
+```ts
+function recurse(): never {
+    return recurse();
 }
 ```
 
@@ -39,7 +61,7 @@ function main(x: *void) {
 
 Stack types are the most performant types, and those that you will use in every Jake program you write.
 
-```ts
+```rs
 i32 // a 32-bit signed integer.
 u32 // a 32-bit unsigned integer.
 f32 // a 32-bit float.
@@ -55,9 +77,9 @@ usize // a 32 or 64-bit integer.
 
 ### Heap types
 
-Heap types cannot be used in computation. Instead, they can be used in the following type categories.
+Heap types cannot be used in computation. Instead, they can be used in the type categories that follow.
 
-```ts
+```rs
 i8 // an 8-bit signed integer.
 u8 // an 8-bit unsigned integer.
 i16 // a 16-bit signed integer.
@@ -68,18 +90,19 @@ u16 // a 16-bit unsigned integer.
 
 Prefix types imbue existing types with new properties. Some you've seen in other languages already.
 
-```ts
+```rs
 &type // an aliased, immutable borrow.
 &mut type // a mutable borrow.
-&[type] // a fat reference.
+&[type] // a fat reference. 
+// this is also known as a "slice" in Rust.
 
 // here be dragons 🐉
-*type // an immutable raw pointer. 
+*type // an immutable raw pointer.
 *mut type // a mutable raw pointer.
 *[type] // a fat pointer.
 ```
 
-Fat pointers are pointers with associated length. That is, it keeps track of the length of the object it's pointing to. It is internally a product type of `[usize, *T or &T]`.
+Fat pointers are pointers with associated length. It can be likened to an array in that it keeps track of how many objects are at the pointer's destination. It is internally a product type of `[usize, *T or &T]`.
 
 ### Infix types
 
@@ -87,7 +110,7 @@ The infix types hold their roots in type theory and category theory.
 
 #### Exponential types
 
-Exponential types are equivalent to the notion of function types in other languages. Jake follows the notion of currying to describe functions with multiple parameters.
+[Exponential types](https://en.wikipedia.org/wiki/Function_type) are equivalent to the notion of function types in other languages. Jake follows the notion of currying to describe functions with multiple parameters.
 
 ```ts
 function foo(): u32;
@@ -97,12 +120,12 @@ function bar(x: u32): void;
 // bar has type `u32 -> void`
 
 function baz(x: u32, y: i32): i64;
-// baz has type u32 -> i32 -> i64
+// baz has type `u32 -> i32 -> i64`
 ```
 
 #### Product types
 
-Product types are the equivalent of structs and tuples present in almost every language.
+[Product types](https://en.wikipedia.org/wiki/Product_type) are the equivalent of structs and tuples present in almost every language.
 
 ```ts
 type Foo = [u32, u32];
@@ -128,10 +151,10 @@ function main(): u32 {
 
 #### Packed types
 
-Packed types are a special, optimized case of product types, where every field is a `bool`, `u8`, `u16`, or `u32`. Packed types are limited to a combined size that is less than 64 bits.
+Packed types, a generalization of [bit fields](https://en.wikipedia.org/wiki/Bit_field), are a special, optimized case of product types, where every field is a `bool`, `u8`, `u16`, or `u32`. All of these fields are fit into a single `u32` or `u64` and thus require a single local on the stack. Packed types are limited to a combined size that is less than 64 bits.
 
 ```ts
-type Packed = packed [ myBoolean1: bool, myBoolean2: bool, myU8: u8, myU16: u16 ];
+type Packed = packed [myBoolean1: bool, myBoolean2: bool, myU8: u8, myU16: u16];
 
 function main(): u32 {
     let foo: Packed = [false, false, 16, 257];
@@ -143,7 +166,7 @@ function main(): u32 {
 
 #### Sum types
 
-Sum types are the equivalent of algebraic enums in Rust, or the disjoint union in general. They are dual to product types, and so are their semantics.
+[Sum types](https://en.wikipedia.org/wiki/Tagged_union) are the equivalent of algebraic enums in Rust, or the [disjoint union](https://en.wikipedia.org/wiki/Disjoint_union) in general. They represent a memory region to be one of a range of types.
 
 ```ts
 type Sum = Foo | Bar; // Foo and Bar are type constructors
@@ -193,7 +216,7 @@ type MyProduct = [sum: Foo: u64 | Bar: u32, ..];
 
 #### Union type 🐉
 
-Union types are unsafe, in that a single memory area is designated several types at once.
+[Union types](https://en.wikipedia.org/wiki/Union_type) are unsafe, in that a single memory region is designated several types at once.
 
 ```ts
 type Unsafe = union [float: f64, int: i64];
