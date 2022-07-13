@@ -20,15 +20,15 @@ Jake has 5 categories of types.
 
 The void type is used to signify either an absence of a value, in the case where it's used in a return value, thus:
 
-```rs
-fn main(): void {
+```ts
+function main(): void {
     // returns nothing, function may have side effects
 }
 ```
 
 or an unspecified type, in the case where it's used in a pointer:
-```rs
-fn main(x: *void) {
+```ts
+function main(x: *void) {
     let float = *<*f64>x;
     // or
     let *float = <*f64>x;
@@ -39,7 +39,7 @@ fn main(x: *void) {
 
 Stack types are the most performant types, and those that you will use in every Jake program you write.
 
-```rs
+```ts
 i32 // a 32-bit signed integer.
 u32 // a 32-bit unsigned integer.
 f32 // a 32-bit float.
@@ -57,7 +57,7 @@ usize // a 32 or 64-bit integer.
 
 Heap types cannot be used in computation. Instead, they can be used in the following type categories.
 
-```rs
+```ts
 i8 // an 8-bit signed integer.
 u8 // an 8-bit unsigned integer.
 i16 // a 16-bit signed integer.
@@ -68,7 +68,7 @@ u16 // a 16-bit unsigned integer.
 
 Prefix types imbue existing types with new properties. Some you've seen in other languages already.
 
-```rs
+```ts
 &type // an aliased, immutable borrow.
 &mut type // a mutable borrow.
 &[type] // a fat reference.
@@ -89,14 +89,14 @@ The infix types hold their roots in type theory and category theory.
 
 Exponential types are equivalent to the notion of function types in other languages. Jake follows the notion of currying to describe functions with multiple parameters.
 
-```rs
-fn foo(): u32;
+```ts
+function foo(): u32;
 // foo has type `void -> u32`
 
-fn bar(x: u32): void;
+function bar(x: u32): void;
 // bar has type `u32 -> void`
 
-fn baz(x: u32, y: i32): i64;
+function baz(x: u32, y: i32): i64;
 // baz has type u32 -> i32 -> i64
 ```
 
@@ -104,23 +104,23 @@ fn baz(x: u32, y: i32): i64;
 
 Product types are the equivalent of structs and tuples present in almost every language.
 
-```rs
+```ts
 type Foo = [u32, u32];
 
-fn main([x, ..]: Foo) {
+function main([x, ..]: Foo) {
     // do something with x, the first field
 }
 ```
 
 to declare type destructors, use the `:` type operator.
 
-```rs
+```ts
 type Product = [
     x: u32,
     y: u32
 ];
 
-fn main(): u32 {
+function main(): u32 {
     let foo: Product = [1, 5];
     return foo.x;
 }
@@ -130,28 +130,28 @@ fn main(): u32 {
 
 Sum types are the equivalent of algebraic enums in Rust, or the disjoint union in general. They are dual to product types, and so are their semantics.
 
-```rs
+```ts
 type Sum = Foo | Bar; // Foo and Bar are type constructors
 
-fn main(Foo): *[u8] {
+function main(Foo): *[u8] {
     return "you passed foo";
 }
 
-fn main(Bar): *[u8] {
+function main(Bar): *[u8] {
     return "you passed bar";
 }
 ```
 
 Sum types may also contain values.
 
-```rs
+```ts
 type Option = Some: u32 | None;
 
-fn main(x: Some): u32 {
+function main(x: Some): u32 {
     return x;
 }
 
-fn main(None): u32 {
+function main(None): u32 {
     return 0;
 }
 ```
@@ -163,11 +163,11 @@ fn main(None): u32 {
 #### Syntax ambiguity
 
 A consequence with our current syntax so far is that the type
-```rs
+```ts
 type MyProduct = [foo: u64 | u32, ..];
 ```
 is ambiguous, since Jake doesn't know if `foo` is a type constructor or destructor. In this case, Jake will always interpret `foo` as a type destructor. If you intended the latter, abstract the sum type into a separate type declaration, thus:
-```rs
+```ts
 type MySum = Foo: u64 | Bar: u32;
 type MyProduct = [foo: MySum, ..];
 
@@ -180,10 +180,10 @@ type MyProduct = [sum: Foo: u64 | Bar: u32, ..];
 
 Union types are unsafe, in that a single memory area is designated several types at once.
 
-```rs
+```ts
 type Unsafe = union [float: f64, int: i64];
 
-fn main(n: i64): f64 {
+function main(n: i64): f64 {
     let beware = union [ int: n ];
     return beware.float; // will reinterpret `n` from i64 to f64
 }
@@ -197,12 +197,12 @@ All functions (and consequently methods) are public to discourage code duplicati
 
 Functions may be used as methods.
 
-```rs
-fn double(x: u32): u32 {
+```ts
+function double(x: u32): u32 {
     return x * 2;
 }
 
-fn main(): u32 {
+function main(): u32 {
     return 5.double();
 }
 ```
@@ -217,12 +217,12 @@ Getters are special functions that
 
 Getters do not need parentheses and serve as a generalization of fields.
 
-```rs
-fn double(x: u32): u32 {
+```ts
+function double(x: u32): u32 {
     return x * 2;
 }
 
-fn main(): u32 {
+function main(): u32 {
     return 5.double; 
 }
 ```
@@ -231,8 +231,8 @@ fn main(): u32 {
 
 Exported functions are exported for use to the host. Only stack types, fat pointers, and regular pointers can be exported.
 
-```rs
-export fn add(x: u32, y: u32): u32 {
+```ts
+export function add(x: u32, y: u32): u32 {
     return x + y;
 }
 ```
@@ -241,10 +241,10 @@ export fn add(x: u32, y: u32): u32 {
 
 Imported functions require the host to provide a function for use with Jake.
 
-```rs
-import fn add(x: u32, y: u32): u32;
+```ts
+import function add(x: u32, y: u32): u32;
 
-fn main(): u32 {
+function main(): u32 {
     return add(1, 1);
 }
 ```
@@ -253,16 +253,16 @@ fn main(): u32 {
 
 Generics allow functions to have the same implementation for multiple types.
 
-```rs
-fn call<A, B>(f: A -> B, a: A): B {
+```ts
+function call<A, B>(f: A -> B, a: A): B {
     return f(a);
 }
 
-fn double(x: u32) -> u32 {
+function double(x: u32) -> u32 {
     return x * 2;
 }
 
-fn main() {
+function main() {
     return call(double, 5); // double(5) = 10
 }
 ```
@@ -292,10 +292,10 @@ Much like WebAssembly, there are only three control flow constructs.
 
 `if` functions like any other language, excluding the borrowed `if let` from Rust. Pattern matching and function overloading are encouraged as a primary alternative to `if let`.
 
-```rs
+```ts
 type Option = Some: u32 | None;
 
-fn main(x: Option): u32 {
+function main(x: Option): u32 {
     if let num: Some = x {
         return num;
     } else {
@@ -304,14 +304,14 @@ fn main(x: Option): u32 {
 }
 ```
 is the same as
-```rs
+```ts
 type Option = Some: u32 | None;
 
-fn main(num: Some): u32 {
+function main(num: Some): u32 {
     return num;
 }
 
-fn main(None): u32 {
+function main(None): u32 {
     return 0;
 }
 ```
@@ -320,12 +320,12 @@ fn main(None): u32 {
 
 Loop is inverted, unlike other languages. That is, a `continue` keyword must be added to keep the loop going.
 
-```rs
-fn factorial(n: 0): u32 {
+```ts
+function factorial(n: 0): u32 {
     return 1;
 }
 
-fn factorial(mut n: u32): u32 {
+function factorial(mut n: u32): u32 {
     let mut num: u32 = 0;
     loop {
         num *= n;
@@ -336,12 +336,12 @@ fn factorial(mut n: u32): u32 {
 }
 ```
 
-```rs
-fn fib(n: 0): u32 {
+```ts
+function fib(n: 0): u32 {
     return 0;
 }
 
-fn fib(n: u32): u32 {
+function fib(n: u32): u32 {
     let mut a = 0;
     let mut b = 1;
 
@@ -363,19 +363,19 @@ fn fib(n: u32): u32 {
 
 Inline functions are always inlined into their call sites as WebAssembly blocks. Consequently, they allow for easy abstraction and flexibility within your code.
 
-```rs
+```ts
 type Option = Some: u32 | None;
 
-inline fn calculate(n: u32, d: 0): u32 {
+inline calculate(n: u32, d: 0): u32 {
     return None; // returns in the function above this one
 }
 
-inline fn calculate(n: u32, d: u32): u32 {
+inline calculate(n: u32, d: u32): u32 {
     break n / d; // returns the result to the caller
 }
 
 // main will return None
-fn main(): Option {
+function main(): Option {
     calculate(5, 0);
 }
 ```
@@ -384,16 +384,16 @@ fn main(): Option {
 
 Jake despises booleans. What a waste of space! Instead, you should use bit operators with integers.
 
-```rs
-fn is_pleasant(is_happy: u32, is_cool: u32): u32 {
+```ts
+function is_pleasant(is_happy: u32, is_cool: u32): u32 {
     return is_happy & is_cool;
 }
 ```
 
 Short-circuit evaluation is not provided.
 
-```rs
-fn main() {
+```ts
+function main() {
     let true = 1;
     return true & side_effects(); // will call side_effects!
 }
@@ -409,10 +409,10 @@ Lambda lifting is a technique to convert closures into performant functions. Alt
 
 In short, lambda lifting "lifts" nested functions by converting the environment into parameters.
 
-```rs
-fn main() {
+```ts
+function main() {
     let x: u64 = 0;
-    fn add(n: u64) {
+    function add(n: u64) {
         x += n;
     }
 
@@ -423,12 +423,12 @@ fn main() {
 
 Then Jake performs lambda lifting internally.
 
-```rs
-fn add(x: &mut u64, n: u64) {
+```ts
+function add(x: &mut u64, n: u64) {
     *x += n;
 }
 
-fn main() {
+function main() {
     let x: u64 = 0;
 
     add(&mut x, 9);
@@ -438,10 +438,10 @@ fn main() {
 
 ### What NOT to do
 
-```rs
-fn instantiate(): void -> void {
+```ts
+function instantiate(): void -> void {
     let x: u64 = 0; // unused variable
-    fn closure() {
+    function closure() {
         x += 1;
     }
     return closure; // ERROR! closure is of type `&mut u64 -> void`
@@ -456,13 +456,13 @@ Jake uses Rust's ownership and borrow checking scheme. Thus, he does not use a g
 
 Jake doesn't like explicit lifetimes, so he simply infers all of them. This requires an intuition to understand certain errors caused by lifetime elision.
 
-```rs
+```ts
 type Foo = [x: &u32, y: &u32];
 
-fn main() {
+function main() {
     let x = 0; // 'a
 
-    fn inner(): &u32 {
+    function inner(): &u32 {
         let y = 1; // 'b
         let foo: Foo = [&x, &y]; // allowed, internal lifetimes are ['a, 'b]
         return foo.x;
@@ -472,8 +472,8 @@ fn main() {
 }
 ```
 
-```rs
-fn foo(x: &u32, y: &u32): &u32 { // x: 'a, y: 'a, return: 'a
+```ts
+function foo(x: &u32, y: &u32): &u32 { // x: 'a, y: 'a, return: 'a
     if random() {
         return x;
     } else {
@@ -481,13 +481,13 @@ fn foo(x: &u32, y: &u32): &u32 { // x: 'a, y: 'a, return: 'a
     }
 }
 
-fn bar(x: &u32): &u32 {
+function bar(x: &u32): &u32 {
     let y = 42; // 'b
     let borrow = foo(&x, &y); // the higher lifetime is coerced to the lower one (&x: 'a -> &x: 'b)
     return borrow; // error, cannot return a pointer whose lifetime will end
 }
 
-fn main() {
+function main() {
     let x = 1; // 'a
     let z: &u32 = bar(&x);
 }
