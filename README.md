@@ -126,6 +126,21 @@ function main(): u32 {
 }
 ```
 
+#### Packed types
+
+Packed types are a special, optimized case of product types, where every field is a `bool`, `u8`, `u16`, or `u32`. Packed types are limited to a combined size that is less than 64 bits.
+
+```ts
+type Packed = packed [ myBoolean1: bool, myBoolean2: bool, myU8: u8, myU16: u16 ];
+
+function main(): u32 {
+    let foo: Packed = [false, false, 16, 257];
+    foo.myU8 = 10;
+    return foo.myU16; // loaded as a u32
+}
+```
+
+
 #### Sum types
 
 Sum types are the equivalent of algebraic enums in Rust, or the disjoint union in general. They are dual to product types, and so are their semantics.
@@ -376,22 +391,15 @@ function main(): Option<u32> {
 }
 ```
 
-## Booleans
+## A note about booleans
 
-Jake despises booleans. What a waste of space! Instead, you should use bit operators with integers.
+Jake despises booleans. What a waste of space! Instead, you should use flags.
 
-```ts
-function is_pleasant(is_happy: u32, is_cool: u32): u32 {
-    return is_happy & is_cool;
-}
-```
-
-Short-circuit evaluation is not provided.
+Jake does not support short-circuit evaluation. This means that the `&&` and `||` operators are not implemented.
 
 ```ts
 function main() {
-    let true = 1;
-    return true & side_effects(); // will call side_effects!
+    return 1 & side_effects(); // will call side_effects!
 }
 ```
 
