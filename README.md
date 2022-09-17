@@ -250,8 +250,8 @@ function main(): u32 {
 Getters are special functions that 
 
 - Have one parameter.
-- Must be referentially transparent (have no side effects). 
-- *Should* be O(1).
+- Must be [referentially transparent](https://en.wikipedia.org/wiki/Referential_transparency) (have no side effects). 
+- *Should* be [O(1).](https://en.wikipedia.org/wiki/Constant_time)
 
 Getters do not need parentheses and serve as a generalization of fields.
 
@@ -289,10 +289,10 @@ function main(): u32 {
 
 ### Generics
 
-Generics allow functions to have the same implementation for multiple types.
+Generics allow functions to have the same implementation for multiple types. This feature relies on [dependent types,](https://en.wikipedia.org/wiki/Dependent_type) which will come much later. In a nutshell, the parameter `f` depends on the parameters `A` and `B`, [which are types.](https://en.wikipedia.org/wiki/Kind_(type_theory))
 
 ```ts
-function call<A, B>(f: A -> B, a: A): B {
+function call(A: *, B: *, f: A -> B, a: A): B {
     return f(a);
 }
 
@@ -301,9 +301,11 @@ function double(x: u32) -> u32 {
 }
 
 function main() {
-    return call(double, 5); // double(5) = 10
+    return call(u32, u32, double, 5); // double(5) = 10
+    // note: virtual parameters (u32) will be inferred if they are omitted
 }
 ```
+
 
 ## Imports
 
@@ -328,22 +330,22 @@ Much like WebAssembly, there are only three control flow constructs.
 
 ### If
 
-`if` functions like any other language, excluding the borrowed `if let` from Rust. Pattern matching and function overloading are encouraged as a primary alternative to `if let`.
+`if` functions like any other language. There is also the addition of flow-sensitive pattern matching:
 
 ```ts
 type Option<T> = Some: T | None;
 
-function main(x: Option<u32>): u32 {
-    if let num: Some = x {
-        return num;
+function main(num: Option<u32>): u32 {
+    if num: Some {
+        return num; // num is u32 here
     } else {
         return 0;
     }
 }
 ```
-is the same as
+For more complex functions, *definition by case analysis* is simpler:
 ```ts
-function main(num: Option<u32>): u32 {
+function main(num: Some<u32>): u32 {
     return num;
 }
 
@@ -395,16 +397,35 @@ function fib(n: u32): u32 {
 }
 ```
 
-### Inline functions
+#### Rationale behind the absence of a `for` loop
 
-Inline functions are always inlined into their call sites as WebAssembly blocks. Consequently, they allow for easy abstraction and flexibility within your code.
+There is no `for` loop because the construct can be replaced by methods that take functions.
+```ts
+import function report(num: u32): void;
+
+function range(start: u32, end: u32, callback: u32 -> void) {
+    let n = start;
+    loop {
+        callback(n);
+        continue if n < end;
+    }
+}
+
+function main() {
+    range(0, 10, report);
+}
+```
+
+### Template functions
+
+Template functions are always [inlined](https://en.wikipedia.org/wiki/Inline_expansion) into their call sites as WebAssembly blocks. Consequently, they allow for easy abstraction and flexibility within your code.
 
 ```ts
-inline calculate(n: u32, d: 0): u32 {
+template calculate(n: u32, d: 0) {
     return None; // returns in the function above this one
 }
 
-inline calculate(n: u32, d: u32): u32 {
+template calculate(n: u32, d: u32) {
     break n / d; // returns the result to the caller
 }
 
@@ -416,7 +437,7 @@ function main(): Option<u32> {
 
 ## A note about booleans
 
-Jake despises booleans. What a waste of space! Instead, you should use flags.
+Jake despises booleans. What a waste of space! Instead, you should use packed types.
 
 Jake does not support short-circuit evaluation. This means that the `&&` and `||` operators are not implemented.
 
