@@ -6,10 +6,10 @@
 Welcome to the documentation for the Jake programming language.
 
 ## Introduction
-If one were to think about it, Jake is what you would get if Rust, TypeScript, and Haskell had a beautiful baby. Or a bratty one maybe. This baby is highly opinionated, like his second cousin Brisk, though he does operate on a philosophy.
+If one were to think about it, Jake is what you would get if Rust, TypeScript, and Haskell had a beautiful baby. Or a bratty one maybe. This baby is highly opinionated, like his sister [Brisk,](https://github.com/spotandjake/Brisk) though he does operate on a philosophy.
 
 - *Be performant.* All constructs map very closely to WebAssembly, and abstractions are thin.
-- *Be maintainable.* Jake will complain when you write code only God could possibly understand.
+- *Be rational.* Even though Jake may be an imperative language, it closely follows functional and theoretical principles according to [homotopy type theory.](https://en.wikipedia.org/wiki/Homotopy_type_theory)
 - *Be real.* Jake will not cater to non-WebAssembly programmers. Bid farewell to booleans, short-circuit evaluation, and traditional control flow semantics. May their bindles serve them well.
 
 ## Types
@@ -18,7 +18,7 @@ Jake has 5 categories of types.
 
 ### Void type
 
-The [void type](https://en.wikipedia.org/wiki/Void_type) is a type with no size, also called the [unit type](https://en.wikipedia.org/wiki/Unit_type) and equivalent to the [top type](https://en.wikipedia.org/wiki/Top_type). It is equivalent to an empty tuple, and can be constructed with `[]`. When functions don't have a return statement, a `return []` is implicitly inserted.
+The [void type](https://en.wikipedia.org/wiki/Void_type) is a type with no size, functioning as the [unit type](https://en.wikipedia.org/wiki/Unit_type) and equivalent to the [top type](https://en.wikipedia.org/wiki/Top_type). It is an empty tuple, and can be constructed with `[]`. When functions don't have a return statement, a `return []` is implicitly inserted.
 
 ```ts
 function main(): void {
@@ -47,7 +47,7 @@ function main(x: *void) {
 
 ### Never type
 
-The `never` type is inherited from TypeScript and is equivalent to the [bottom type](https://en.wikipedia.org/wiki/Bottom_type). That is, a value for it can never be constructed. If it is, then the world is ending.
+The `never` type is inherited from TypeScript and is equivalent to the [bottom type](https://en.wikipedia.org/wiki/Bottom_type). That is, it can be used to construct a value for any type, and thus a value for `never` can never be constructed. If it is, then either your program had a semantic error, is running forever elsewhere, or the world is ending (Jake had an oopsie please report!).
 
 A function can be marked with `never` to signify that it loops forever.
 
@@ -183,7 +183,7 @@ function main(Bar): *[u8] {
 Sum types may also contain values.
 
 ```ts
-type Option<T> = Some: T | None;
+type Option<T> = Some: T | None: [];
 
 function main(x: Some<u32>): u32 {
     return x;
@@ -306,13 +306,14 @@ function main() {
 }
 ```
 
+TODO: more about dependent types and HoTT
 
 ## Imports
 
 Imports are similar to TypeScript.
 
 ```ts
-import "./calculus.jk" with { derivative as derive, integrate }; // import these items
+import "./calculus.jk" with { derivative as diff, integrate }; // import these items
 ```
 ```ts
 import "./graphs.jk" as Graph with { dominators, tarjan }; // import these items into this namespace
@@ -333,7 +334,7 @@ Much like WebAssembly, there are only three control flow constructs.
 `if` functions like any other language. There is also the addition of flow-sensitive pattern matching:
 
 ```ts
-type Option<T> = Some: T | None;
+type Option<T> = Some: T | None: [];
 
 function main(num: Option<u32>): u32 {
     if num: Some {
