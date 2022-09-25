@@ -6,10 +6,10 @@
 Welcome to the documentation for the Jake programming language.
 
 ## Introduction
-If one were to think about it, Jake is what you would get if Rust, TypeScript, and Haskell had a beautiful baby. Or a bratty one maybe. This baby is highly opinionated, like his sister [Brisk,](https://github.com/spotandjake/Brisk) though he does operate on a philosophy.
+If one were to think about it, Jake is what you would get if Rust, TypeScript, and Haskell had a beautiful baby. Or a bratty one maybe. This baby is highly opinionated, like his sister [Brisk](https://github.com/spotandjake/Brisk), though he does operate on a philosophy.
 
 - *Be performant.* All constructs map very closely to WebAssembly, and abstractions are thin.
-- *Be rational.* Even though Jake may be an imperative language, it closely follows functional and theoretical principles according to [homotopy type theory.](https://en.wikipedia.org/wiki/Homotopy_type_theory)
+- *Be rational.* Even though Jake may be an imperative language, it closely follows functional and theoretical principles according to [homotopy type theory](https://en.wikipedia.org/wiki/Homotopy_type_theory).
 - *Be real.* Jake will not cater to non-WebAssembly programmers. Bid farewell to booleans, short-circuit evaluation, and traditional control flow semantics. May their bindles serve them well.
 
 ## Types
@@ -251,7 +251,7 @@ Getters are special functions that
 
 - Have one parameter.
 - Must be [referentially transparent](https://en.wikipedia.org/wiki/Referential_transparency) (have no side effects). 
-- *Should* be [O(1).](https://en.wikipedia.org/wiki/Constant_time)
+- *Should* be [O(1)](https://en.wikipedia.org/wiki/Constant_time).
 
 Getters do not need parentheses and serve as a generalization of fields.
 
@@ -289,7 +289,7 @@ function main(): u32 {
 
 ### Generics
 
-Generics allow functions to have the same implementation for multiple types. This feature relies on [dependent types,](https://en.wikipedia.org/wiki/Dependent_type) which will come much later. In a nutshell, the parameter `f` depends on the parameters `A` and `B`, [which are types.](https://en.wikipedia.org/wiki/Kind_(type_theory))
+Generics allow functions to have the same implementation for multiple types. This feature relies on [dependent types](https://en.wikipedia.org/wiki/Dependent_type), which will come much later. In a nutshell, the parameter `f` depends on the parameters `A` and `B`, [which are types](https://en.wikipedia.org/wiki/Kind_(type_theory)).
 
 ```ts
 function call(A: *, B: *, f: A -> B, a: A): B {
@@ -454,7 +454,7 @@ Conventionally, `~` is the operator that inverts all the bits in an integer. Web
 
 ## Lambda lifting
 
-Lambda lifting is a technique to convert closures into performant functions. Although Jake doesn't support legitimate closures, he supports lambda lifting.
+[Lambda lifting](https://en.wikipedia.org/wiki/Lambda_lifting) is a technique to convert closures into performant functions. Although Jake doesn't support legitimate closures, he supports lambda lifting.
 
 In short, lambda lifting "lifts" nested functions by converting the environment into parameters.
 
