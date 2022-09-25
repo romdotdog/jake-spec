@@ -135,7 +135,7 @@ function main([x, ..]: Foo) {
 }
 ```
 
-to declare type destructors, use the `:` type operator.
+to declare type destructors, a generalization of fields, use the `:` type operator.
 
 ```ts
 type Product = [
@@ -253,7 +253,7 @@ Getters are special functions that
 - Must be [referentially transparent](https://en.wikipedia.org/wiki/Referential_transparency) (have no side effects). 
 - *Should* be [O(1)](https://en.wikipedia.org/wiki/Constant_time).
 
-Getters do not need parentheses and serve as a generalization of fields.
+Getters do not need parentheses and serve as more versatile fields.
 
 ```ts
 function double(x: u32): u32 {
