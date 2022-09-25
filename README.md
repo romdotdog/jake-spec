@@ -123,109 +123,6 @@ function baz(x: u32, y: i32): i64;
 // baz has type `u32 -> i32 -> i64`
 ```
 
-#### Product types
-
-[Product types](https://en.wikipedia.org/wiki/Product_type) are the equivalent of structs and tuples present in almost every language.
-
-```ts
-type Foo = [u32, u32];
-
-function main([x, ..]: Foo) {
-    // do something with x, the first field
-}
-```
-
-to declare type destructors, a generalization of fields, use the `:` type operator.
-
-```ts
-type Product = [
-    x: u32,
-    y: u32
-];
-
-function main(): u32 {
-    let foo: Product = [1, 5];
-    return foo.x;
-}
-```
-
-#### Packed types
-
-Packed types, a generalization of [bit fields](https://en.wikipedia.org/wiki/Bit_field), are a special, optimized case of product types, where every field is a `bool`, `u8`, `u16`, or `u32`. All of these fields are fit into a single `u32` or `u64` and thus require a single local on the stack. Packed types are limited to a combined size that is less than 64 bits.
-
-```ts
-type Packed = packed [myBoolean1: bool, myBoolean2: bool, myU8: u8, myU16: u16];
-
-function main(): u32 {
-    let foo: Packed = [false, false, 16, 257];
-    foo.myU8 = 10;
-    return foo.myU16; // loaded as a u32
-}
-```
-
-
-#### Sum types
-
-[Sum types](https://en.wikipedia.org/wiki/Tagged_union) are the equivalent of algebraic enums in Rust, or the [disjoint union](https://en.wikipedia.org/wiki/Disjoint_union) in general. They represent a memory region to be one of a range of types.
-
-```ts
-type Sum = Foo | Bar; // Foo and Bar are type constructors
-
-function main(Foo): *[u8] {
-    return "you passed foo";
-}
-
-function main(Bar): *[u8] {
-    return "you passed bar";
-}
-```
-
-Sum types may also contain values.
-
-```ts
-type Option<T> = Some: T | None: [];
-
-function main(x: Some<u32>): u32 {
-    return x;
-}
-
-function main(None): u32 {
-    return 0;
-}
-```
-
-> **Note**
-> Sum types without values are always defined internally as `usize`
-> If they have values, then it's `[usize, *mut T]`.
-
-#### Syntax ambiguity
-
-A consequence with our current syntax so far is that the type
-```ts
-type MyProduct = [foo: u64 | u32, ..];
-```
-is ambiguous, since Jake doesn't know if `foo` is a type constructor or destructor. In this case, Jake will always interpret `foo` as a type destructor. If you intended the latter, abstract the sum type into a separate type declaration, thus:
-```ts
-type MySum = Foo: u64 | Bar: u32;
-type MyProduct = [foo: MySum, ..];
-
-// this is technically possible, but discouraged:
-
-type MyProduct = [sum: Foo: u64 | Bar: u32, ..];
-```
-
-#### Union type 🐉
-
-[Union types](https://en.wikipedia.org/wiki/Union_type) are unsafe, in that a single memory region is designated several types at once.
-
-```ts
-type Unsafe = union [float: f64, int: i64];
-
-function main(n: i64): f64 {
-    let beware = union [ int: n ];
-    return beware.float; // will reinterpret `n` from i64 to f64
-}
-```
 
 ## Functions
 
@@ -307,6 +204,118 @@ function main() {
 ```
 
 TODO: more about dependent types and HoTT
+
+#### Product types
+
+[Product types](https://en.wikipedia.org/wiki/Product_type) are the equivalent of structs and tuples present in almost every language.
+
+```ts
+type Foo = [u32, u32];
+
+function main([x, ..]: Foo) {
+    // do something with x, the first field
+}
+```
+
+to declare type destructors, a generalization of fields, use the `:` type operator.
+
+```ts
+type Product = [
+    x: u32,
+    y: u32
+]; 
+
+// x and y are now destructors
+// the destructor x has type Product -> u32
+// the destructor y has type Product -> u32
+
+function main(): u32 {
+    let foo: Product = [1, 5];
+    return foo.x; // x is used as a getter
+}
+```
+
+#### Packed types
+
+Packed types, a generalization of [bit fields](https://en.wikipedia.org/wiki/Bit_field), are a special, optimized case of product types, where every field is a `bool`, `u8`, `u16`, or `u32`. All of these fields are fit into a single `u32` or `u64` and thus require a single local on the stack. Packed types are limited to a combined size that is less than 64 bits.
+
+```ts
+type Packed = packed [myBoolean1: bool, myBoolean2: bool, myU8: u8, myU16: u16];
+
+function main(): u32 {
+    let foo: Packed = [false, false, 16, 257];
+    foo.myU8 = 10;
+    return foo.myU16; // loaded as a u32
+}
+```
+
+
+#### Sum types
+
+[Sum types](https://en.wikipedia.org/wiki/Tagged_union) are the equivalent of algebraic enums in Rust, or the [disjoint union](https://en.wikipedia.org/wiki/Disjoint_union) in general. They represent a memory region to be one of a range of types.
+
+```ts
+// assuming that Foo and Bar are defined elsewhere
+type Sum = Foo | Bar; // Foo and Bar are now also constructors as well as types
+
+// the constructor Foo has type Foo -> Sum
+// the constructor Bar has type Bar -> Sum
+
+function main(_: Foo): &[u8] {
+    return "you passed foo";
+}
+
+function main(_: Bar): &[u8] {
+    return "you passed bar";
+}
+```
+
+Sum types may also contain values.
+
+```ts
+type Option<T> = Some: T | None: [];
+
+function main(x: u32): u32 {
+    return x;
+}
+
+function main(None): u32 {
+    return 0;
+}
+```
+
+> **Note**
+> Sum types without values are always defined internally as `usize`
+> If they have values, then it's `[usize, *mut T]`.
+
+#### Syntax ambiguity
+
+A consequence with our current syntax so far is that the type
+```ts
+type MyProduct = [foo: u64 | u32, ..];
+```
+is ambiguous, since Jake doesn't know if `foo` is a type constructor or destructor. In this case, Jake will always interpret `foo` as a type destructor. If you intended the latter, abstract the sum type into a separate type declaration, thus:
+```ts
+type MySum = Foo: u64 | Bar: u32;
+type MyProduct = [foo: MySum, ..];
+
+// this is technically possible, but discouraged:
+
+type MyProduct = [sum: Foo: u64 | Bar: u32, ..];
+```
+
+#### Union type 🐉
+
+[Union types](https://en.wikipedia.org/wiki/Union_type) are unsafe, in that a single memory region is designated several types at once.
+
+```ts
+type Unsafe = union [float: f64, int: i64];
+
+function main(n: i64): f64 {
+    let beware = union [ int: n ];
+    return beware.float; // will reinterpret `n` from i64 to f64
+}
+```
 
 ## Imports
 
