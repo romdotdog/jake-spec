@@ -209,8 +209,7 @@ function double(x: u32) -> u32 {
 }
 
 function main() {
-    return call(u32, u32, double, 5); // double(5) = 10
-    // note: virtual parameters (u32) will be inferred if they are omitted
+    return call(double, 5); // double(5) = 10
 }
 ```
 
