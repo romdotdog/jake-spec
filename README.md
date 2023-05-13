@@ -18,12 +18,12 @@ Jake has 5 categories of types.
 
 ### Void type
 
-The [void type](https://en.wikipedia.org/wiki/Void_type) is a type with no size, functioning as the [unit type](https://en.wikipedia.org/wiki/Unit_type) and equivalent to the [top type](https://en.wikipedia.org/wiki/Top_type). It is an empty tuple, and can be constructed with `[]`. When functions don't have a return statement, a `return []` is implicitly inserted.
+The [void type](https://en.wikipedia.org/wiki/Void_type) is a type with no size, functioning as the [unit type](https://en.wikipedia.org/wiki/Unit_type) and equivalent to the [top type](https://en.wikipedia.org/wiki/Top_type). It is an empty tuple, and can be constructed with `[]`. When functions don't have a return statement, a `return [];` is implicitly inserted.
 
 ```ts
 function main(): void {
     // function may have side effects
-    // return [] is implicitly added here, which is compatible with `void`
+    // return []; is implicitly added here, which is assignable to `void`
 }
 ```
 
@@ -123,12 +123,9 @@ function baz(x: u32, y: i32): i64;
 // baz has type `u32 -> i32 -> i64`
 ```
 
+Some additional ways to use functions follow.
 
-## Functions
-
-All functions (and consequently methods) are public to discourage code duplication.
-
-### Methods
+##### Methods
 
 Functions may be used as methods.
 
@@ -142,18 +139,30 @@ function main(): u32 {
 }
 ```
 
-### Getters
+##### Pure functions
+
+Pure functions, put simply, are functions that must return the same output, given the same input multiple times. Pure functions are referentially transparent, meaning that calls to pure functions may be replaced with the evaluation without side effects.
+
+Pure functions are defined with the `pure` keyword. Pure functions offer the advantage of being compatible with Homotopy Type Theory (specifically, the transport lemma).
+
+```ts
+pure function add(x: u32, y: u32): u32 {
+	return x + y;
+}
+```
+
+##### Getters
 
 Getters are special functions that 
 
 - Have one parameter.
-- Must be [referentially transparent](https://en.wikipedia.org/wiki/Referential_transparency) (have no side effects). 
+- *Must* be pure.
 - *Should* be [O(1)](https://en.wikipedia.org/wiki/Constant_time).
 
 Getters do not need parentheses and serve as more versatile fields.
 
 ```ts
-function double(x: u32): u32 {
+pure function double(x: u32): u32 {
     return x * 2;
 }
 
@@ -162,34 +171,36 @@ function main(): u32 {
 }
 ```
 
-### Exported functions
+##### Host functions
 
-Exported functions are exported for use to the host. Only stack types, fat pointers, and regular pointers can be exported.
+Host functions are exported for use to the host. Only stack types, fat pointers, and regular pointers can be exported.
 
 ```ts
-export function add(x: u32, y: u32): u32 {
+host function add(x: u32, y: u32): u32 {
     return x + y;
 }
 ```
 
-### Imported functions
+##### Imported functions
 
 Imported functions require the host to provide a function for use with Jake.
 
 ```ts
-import function add(x: u32, y: u32): u32;
+import host add: u32 -> u32 -> u32;
 
 function main(): u32 {
     return add(1, 1);
 }
 ```
 
-### Generics
+##### Generics
 
-Generics allow functions to have the same implementation for multiple types. This feature relies on [dependent types](https://en.wikipedia.org/wiki/Dependent_type), which will come much later. In a nutshell, the parameter `f` depends on the parameters `A` and `B`, [which are types](https://en.wikipedia.org/wiki/Kind_(type_theory)).
+Generics allow functions to have the same implementation for multiple types. This feature relies on [dependent types](https://en.wikipedia.org/wiki/Dependent_type), which will come much later. 
+
+A and B are `*`, which is the [type of types](https://en.wikipedia.org/wiki/Kind_(type_theory)). They belong in angle brackets because given `f`, the values of `A` and `B` can be inferred and do not need to be supplied. 
 
 ```ts
-function call(A: *, B: *, f: A -> B, a: A): B {
+function call<A: *, B: *>(f: A -> B, a: A): B {
     return f(a);
 }
 
@@ -203,7 +214,13 @@ function main() {
 }
 ```
 
-TODO: more about dependent types and HoTT
+Otherwise, if the type can't be inferred, the parameter must be placed within parentheses.
+
+```ts
+function sizeof(T: *): u32 {
+	/* intrinsic */
+}
+```
 
 #### Product types
 
@@ -249,31 +266,31 @@ function main(): u32 {
 }
 ```
 
-
 #### Sum types
 
 [Sum types](https://en.wikipedia.org/wiki/Tagged_union) are the equivalent of algebraic enums in Rust, or the [disjoint union](https://en.wikipedia.org/wiki/Disjoint_union) in general. They represent a memory region to be one of a range of types.
 
 ```ts
-// assuming that Foo and Bar are defined elsewhere
+type Foo = u32;
+type Bar = &[u8];
 type Sum = Foo | Bar; // Foo and Bar are now also constructors as well as types
 
 // the constructor Foo has type Foo -> Sum
 // the constructor Bar has type Bar -> Sum
 
-function main(_: Foo): &[u8] {
-    return "you passed foo";
+function main(x: Foo): u8[] {
+    return x.toString().utf8(); // TODO: owned borrows, relative pointers
 }
 
-function main(_: Bar): &[u8] {
-    return "you passed bar";
+function main(m: Bar): u8[] {
+    return m;
 }
 ```
 
 Sum types may also contain values.
 
 ```ts
-type Option<T> = Some: T | None: [];
+type Option(T: *) = Some: T | None: [];
 
 function main(x: u32): u32 {
     return x;
@@ -343,9 +360,9 @@ Much like WebAssembly, there are only three control flow constructs.
 `if` functions like any other language. There is also the addition of flow-sensitive pattern matching:
 
 ```ts
-type Option<T> = Some: T | None: [];
+type Option(T: *) = Some: T | None: [];
 
-function main(num: Option<u32>): u32 {
+function main(num: Option(u32)): u32 {
     if num: Some {
         return num; // num is u32 here
     } else {
@@ -353,9 +370,9 @@ function main(num: Option<u32>): u32 {
     }
 }
 ```
-For more complex functions, *definition by case analysis* is simpler:
+For more complex functions, *definition by case analysis* is more ergonomic:
 ```ts
-function main(num: Some<u32>): u32 {
+function main(num: u32): u32 {
     return num;
 }
 
@@ -366,8 +383,7 @@ function main(None): u32 {
 
 ### Loop
 
-Loop is inverted, unlike other languages. That is, a `continue` keyword must be added to keep the loop going.
-
+`loop` is equivalent to `while(true)` in other languages. However, it is inverted, unlike other languages. That is, a `continue` keyword must be added to keep the loop going. If there is no `continue` keyword in a `loop`, the compiler will not hesitate to notify you.
 ```ts
 function factorial(n: 0): u32 {
     return 1;
@@ -440,7 +456,7 @@ template calculate(n: u32, d: u32) {
 }
 
 // main will return None
-function main(): Option<u32> {
+function main(): Option(u32) {
     calculate(5, 0);
 }
 ```
@@ -461,50 +477,49 @@ function main() {
 
 Conventionally, `~` is the operator that inverts all the bits in an integer. WebAssembly does not offer this functionality with one instruction, so `~` is implemented as `x ^ -1`. However, `!` is the equivalent of `x == 0`, and is implemented with a single instruction: `eqz`.
 
-## Lambda lifting
+## The `liberal` option
 
-[Lambda lifting](https://en.wikipedia.org/wiki/Lambda_lifting) is a technique to convert closures into performant functions. Although Jake doesn't support legitimate closures, he supports lambda lifting.
+Jake doesn't support indirect calling by default. That is, `liberal=0`.
 
-In short, lambda lifting "lifts" nested functions by converting the environment into parameters.
-
-```ts
-function main() {
-    let x: u64 = 0;
-    function add(n: u64) {
-        x += n;
-    }
-
-    add(9);
-    add(10);
-}
-```
-
-Then Jake performs lambda lifting internally.
+Here is a sample of what happens no matter the setting of `liberal`:
 
 ```ts
-function add(x: &mut u64, n: u64) {
-    *x += n;
+function callWith5(f: u32 -> u32): u32 {
+	return f(5);
 }
 
 function main() {
-    let x: u64 = 0;
-
-    add(&mut x, 9);
-    add(&mut x, 10);
+	return callWith5(add(1));
 }
 ```
 
-### What NOT to do
+Since `callWith5` is inlinable, this becomes
 
 ```ts
-function instantiate(): void -> void {
-    let x: u64 = 0; // unused variable
-    function closure() {
-        x += 1;
-    }
-    return closure; // ERROR! closure is of type `&mut u64 -> void`
+function main() {
+	return add(1)(5);
 }
 ```
+
+This removes the indirect call.
+
+### Non-inlinable functions
+
+```ts
+function fib(n: u32, adjust: u32 -> u32): u32 {
+	if (n == 0 || n == 1) {
+ 		return n;
+	} else {
+		return adjust(fib(n - 1, adjust) + fib(n - 2, adjust));
+	}
+} 
+
+function main() {
+	return fib(5, someFunction);
+}
+```
+
+if `liberal=0`, this code would fatally error because recursive functions are non-inlinable and thus `adjust` cannot be passed directly. If `liberal=1`, `adjust` would be registered into the WebAssembly table and passed into `fib` appropriately.
 
 ## Memory management
 
@@ -548,5 +563,50 @@ function bar(x: &u32): &u32 {
 function main() {
     let x = 1; // 'a
     let z: &u32 = bar(&x);
+}
+```
+
+## Lambda lifting
+
+[Lambda lifting](https://en.wikipedia.org/wiki/Lambda_lifting) is a technique to convert some closures into performant top-level functions. Although Jake doesn't support legitimate closures, he supports lambda lifting.
+
+In short, lambda lifting "lifts" nested functions by converting the environment into parameters.
+
+```ts
+function main() {
+    let x: u64 = 0;
+    function add(n: u64) {
+        x += n;
+    }
+
+    add(9);
+    add(10);
+}
+```
+
+Then Jake performs lambda lifting internally.
+
+```ts
+function add(x: &mut u64, n: u64) {
+    *x += n;
+}
+
+function main() {
+    let x: u64 = 0;
+
+    add(&mut x, 9);
+    add(&mut x, 10);
+}
+```
+
+### What NOT to do
+
+```ts
+function instantiate(): void -> void {
+    let x: u64 = 0; // unused variable
+    function closure() {
+        x += 1;
+    }
+    return closure; // ERROR! closure is of type `&mut u64 -> void`
 }
 ```
